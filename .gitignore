@@ -1,0 +1,18 @@
+# Compiled source #
+###################
+*.o
+
+# Packages #
+############
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Files #
+#########
+**/obj/*.o
