@@ -46,7 +46,9 @@ int size, stripSize;  /* assume size is multiple of numWorkers */
 int total; /* total sum */
 int max; /* global max */
 int min; /* global min */
-int nextRow /* the bag of tasks */
+int minPos[2]; /* position in matrix of min */
+int maxPos[2]; /* position in matrix of max */
+int nextRow; /* the bag of tasks */
 int matrix[MAXSIZE][MAXSIZE]; /* matrix */
 
 void *Worker(void *);
@@ -95,6 +97,7 @@ int main(int argc, char *argv[]) {
   /* initialize the variables */
   total = 0;
   min = max = matrix[0][0];
+  nextRow = 0;
 
   /* do the parallel work: create the workers */
   start_time = read_timer();
@@ -110,8 +113,8 @@ int main(int argc, char *argv[]) {
   end_time = read_timer();
   /* print results */
   printf("The total is %d\n", total);
-  printf("The min is %d\n", min);
-  printf("The max is %d\n", max);
+  printf("The min is %d at position (%d,%d)\n", min, minPos[0], minPos[1]);
+  printf("The max is %d at position (%d,%d)\n", max, maxPos[0], maxPos[1]);
   printf("The execution time is %g sec\n", end_time - start_time);
   pthread_exit(NULL);
 }
@@ -120,32 +123,62 @@ int main(int argc, char *argv[]) {
    After a barrier, worker(0) computes and prints the total */
 void *Worker(void *arg) {
   long myid = (long) arg;
-  int i, j, first, last;
+  int localSum, localMin, localMax, i, row;
+  int lMinPos[2];
+  int lMaxPos[2];
 
 #ifdef DEBUG
   printf("worker %d (pthread id %u) has started\n", myid, pthread_self());
 #endif
 
-  /* determine first and last rows of my strip */
-  first = myid*stripSize;
-  last = (myid == numWorkers - 1) ? (size - 1) : (first + stripSize - 1);
+  while(true) {
+    /* pick a task from the bag */
+    pthread_mutex_lock(&bagOfTasks);
+    row = nextRow++;
+    pthread_mutex_unlock(&bagOfTasks);
+    /* check if done */
+    if (row >= MAXSIZE) break;
 
-  /* sum values in my strip and find the min and max values */
-  for (i = first; i <= last; i++)
-    for (j = 0; j < size; j++) {
-      pthread_mutex_lock(&sum);
-      total += matrix[i][j];
-      pthread_mutex_unlock(&sum);
+    /* sum values in my strip and find the min and max values and theri positions*/
+    localSum = 0;
+    localMax = localMin = matrix[row][0];
+    lMaxPos[0] = row; lMaxPos[1] = 0;
+    lMinPos[0] = row; lMinPos[1] = 0;
+    for (i = 0; i < MAXSIZE; i++) {
+      localSum += matrix[row][i];
 
-      if (matrix[i][j] > max) {
-        pthread_mutex_lock(&extreme);
-        if (matrix[i][j] > max) max = matrix[i][j];
-        pthread_mutex_unlock(&extreme);
+      if (matrix[row][i] > localMax) {
+        localMax = matrix[row][i];
+        lMaxPos[0] = row; lMaxPos[1] = i;
       }
-      else if (matrix[i][j] < min) {
-        pthread_mutex_lock(&extreme);
-        if (matrix[i][j] < min) min = matrix[i][j];
-        pthread_mutex_unlock(&extreme);
+      else if (matrix[row][i] < localMin) {
+        localMin = matrix[row][i];
+        lMinPos[0] = row; lMinPos[1] = i;
       }
     }
+    #ifdef DEBUG
+      printf("worker %d (pthread id %u) has finished\n", myid, pthread_self());
+    #endif
+    pthread_mutex_lock(&sum);
+    total += localSum;
+    pthread_mutex_unlock(&sum);
+
+    if (localMax > max) {
+      pthread_mutex_lock(&extreme);
+      if (localMax > max) {
+         max = localMax;
+         maxPos[0] = lMaxPos[0]; maxPos[1] = lMaxPos[1];
+       }
+      pthread_mutex_unlock(&extreme);
+    }
+
+    if (localMin < min) {
+      pthread_mutex_lock(&extreme);
+      if (localMin < min) {
+        min = localMin;
+        minPos[0] = lMinPos[0]; minPos[1] = lMinPos[1];
+      }
+      pthread_mutex_unlock(&extreme);
+    }
+  }
 }
