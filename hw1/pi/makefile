@@ -1,16 +1,16 @@
 IDIR=src/include
 CC=gcc
-CFLAGS=-lpthread
+CFLAGS=-lpthread -I$(IDIR)
 
 ODIR=obj
 SDIR=src
 
 LIBS=-lm
 
-_DEPS=pi.h
+_DEPS=taskQueue.h
 DEPS=$(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ=pi.o
+_OBJ=pi.o taskQueue.o
 OBJ=$(patsubst %,$(ODIR)/%,$(_OBJ))
 
 $(ODIR)/%.o: $(SDIR)/%.c $(DEPS)
