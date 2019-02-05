@@ -21,6 +21,7 @@
 pthread_mutex_t lock; /* mutex lock for the bag of tasks */
 pthread_mutex_t area;
 pthread_mutex_t finished;
+pthread_mutex_t ntasks;
 int numWorkers;
 double epsilon;
 int numTasks;   /* number of generated tasks */
@@ -54,8 +55,8 @@ double pi(double a,double b,double fa,double fb,double area) {
   double fm = sqrt(1 - m*m);
   double larea = (fa + fm)*(m - a)/2;
   double rarea = (fb + fm)*(b - m)/2;
+  //printf("Area: %f Epsilon: %f\n", fabs((larea + rarea) - area), epsilon);
   if (fabs((larea + rarea) - area) > epsilon) {
-    //printf("Area: %f Epsilon: %f\n", fabs((larea + rarea) - area), epsilon);
     larea = pi(a, m, fa, fm, larea);
     rarea = pi(m, b, fm, fb, rarea);
   }
@@ -99,7 +100,9 @@ int main(int argc, char *argv[]) {
   for(l = 0; l < numWorkers; l++) {
     pthread_join(workerid[l], NULL);
   }
+  end_time = read_timer();
 
+  printf("Finished exectution in %f sec\n", end_time);
   printf("The calculated approximation of pi is %f\n", sum*4);
 
   pthread_exit(NULL);
@@ -112,38 +115,57 @@ void *Worker(void *arg) {
   struct Task task;
 
   while(true) {
-    //printf("numTasks: %d\tfinishedTasks: %d\n", numTasks, finishedTasks);
+    if(numTasks < maxTasks) {
+      pthread_mutex_lock(&ntasks);
+      if(numTasks < maxTasks) {
+        pthread_mutex_unlock(&ntasks);
+        if(!isEmpty()) {
+          pthread_mutex_lock(&lock);
+          if(!isEmpty()) {
+            task = get();
+            pthread_mutex_unlock(&lock);
+
+            m = (task.a + task.b)/2;
+            fm = sqrt(1 - m*m);
+            larea = (task.fa + fm)*(m - task.a)/2;
+            rarea = (task.fb + fm)*(task.b - m)/2;
+            if (fabs((larea + rarea) - task.area) > epsilon) {
+                struct Task ltask = {task.a, m, task.fa, fm, larea};
+                struct Task rtask = {m, task.b, fm, task.fb, rarea};
+                pthread_mutex_lock(&lock);
+                put(ltask);
+                put(rtask);
+                pthread_mutex_unlock(&lock);
+                pthread_mutex_lock(&ntasks);
+                numTasks = numTasks + 2;
+                pthread_mutex_unlock(&ntasks);
+            } else {
+              pthread_mutex_lock(&area);
+              sum = sum + larea + rarea;
+              pthread_mutex_unlock(&area);
+              pthread_mutex_lock(&finished);
+              finishedTasks++;
+              pthread_mutex_unlock(&finished);
+            }
+          } else {  // if the bag of tasks is empty
+            pthread_mutex_unlock(&lock);
+          }
+        }
+      } else {  // if numtasks >= maxTasks
+          pthread_mutex_unlock(&ntasks);
+          break;  // exit while-loop, since we have enough tasks
+      }
+    } else {
+      break;
+    }
+  }
+  while(true) {
     if(!isEmpty()) {
       pthread_mutex_lock(&lock);
       if(!isEmpty()) {
         task = get();
-      }
-      pthread_mutex_unlock(&lock);
-    }
+        pthread_mutex_unlock(&lock);
 
-      if(numTasks <= maxTasks) {
-        m = (task.a + task.b)/2;
-        fm = sqrt(1 - m*m);
-        larea = (task.fa + fm)*(m - task.a)/2;
-        rarea = (task.fb + fm)*(task.b - m)/2;
-        if (abs((larea + rarea) - task.area) > epsilon) {
-            struct Task ltask = {task.a, m, task.fa, fm, larea};
-            struct Task rtask = {m, task.b, fm, task.fb, rarea};
-            pthread_mutex_lock(&lock);
-            put(ltask);
-            put(rtask);
-            numTasks = numTasks + 2;
-            pthread_mutex_unlock(&lock);
-        } else {
-          pthread_mutex_lock(&area);
-          sum = sum + larea + rarea;
-          pthread_mutex_unlock(&area);
-          pthread_mutex_lock(&finished);
-          finishedTasks++;
-          pthread_mutex_unlock(&finished);
-        }
-      } else {  // if numTasks > maxTasks
-        printf("Sum %f\n", sum);
         double appr = pi(task.a, task.b, task.fa, task.fb, task.area);
         pthread_mutex_lock(&area);
         sum += appr;
@@ -151,8 +173,11 @@ void *Worker(void *arg) {
         pthread_mutex_lock(&finished);
         finishedTasks++;
         pthread_mutex_unlock(&finished);
+      } else {  // the bag of tasks is empty
+        pthread_mutex_unlock(&lock);
+        break;  // nothing left to do
       }
-    if(finishedTasks == numTasks) {
+    } else {
       break;
     }
   }

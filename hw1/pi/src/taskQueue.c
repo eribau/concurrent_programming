@@ -34,8 +34,7 @@ void put(struct Task task) {
   size++;
   if (head == NULL) {
     head = (tail = new(task, head));
-    struct Task *ta = &tail->task;
-    printf("Test2 %f\n", ta->a);
+    //printf("Put\n");
     return;
   }
   tail->next = new(task, tail->next);
@@ -48,7 +47,6 @@ void put(struct Task task) {
   free(head);
   head = t;
   size--;
-  struct Task *ta = &task;
-  printf("Get %f\n", ta->a);
+  //printf("Get\n");
   return task;
 }
