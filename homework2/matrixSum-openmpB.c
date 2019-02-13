@@ -61,27 +61,31 @@ int main(int argc, char *argv[]) {
   struct Compare min = { .val = matrix[0][0], .pos = { .x = 0, .y = 0} };
 
   start_time = omp_get_wtime();
-#pragma omp parallel for reduction(+:total) reduction(minimum:min) reduction(maximum:max) \
-                          private(j)
-for (i = 0; i < size; i++)
-    for (j = 0; j < size; j++){
-      total += matrix[i][j];
-      if (matrix[i][j] < min.val) {
-        min.val = matrix[i][j];
-        min.pos.x = i;
-        min.pos.y = j;
-      } else if (matrix[i][j] > max.val) {
-        max.val = matrix[i][j];
-        max.pos.x = i;
-        max.pos.y = j;
-      }
+  #pragma omp parallel
+  {
+    #pragma omp for reduction(+:total) reduction(minimum:min) \
+                    reduction(maximum:max) private(j)
+     for (i = 0; i < size; i++)
+         for (j = 0; j < size; j++){
+           total += matrix[i][j];
+           if (matrix[i][j] < min.val) {
+             min.val = matrix[i][j];
+             min.pos.x = i;
+             min.pos.y = j;
+           } else if (matrix[i][j] > max.val) {
+             max.val = matrix[i][j];
+             max.pos.x = i;
+             max.pos.y = j;
+           }
+         }
+    #pragma omp master
+    {
+      end_time = omp_get_wtime();
+
+      printf("the total is %d\n", total);
+      printf("the max is %d at position (%d, %d)\n", max.val, max.pos.x, max.pos.y);
+      printf("the min is %d at position (%d, %d)\n", min.val, min.pos.x, min.pos.y);
+      printf("it took %g seconds\n", end_time - start_time);
     }
-// implicit barrier
-
-  end_time = omp_get_wtime();
-
-  printf("the total is %d\n", total);
-  printf("the max is %d at position (%d, %d)\n", max.val, max.pos.x, max.pos.y);
-  printf("the min is %d at position (%d, %d)\n", min.val, min.pos.x, min.pos.y);
-  printf("it took %g seconds\n", end_time - start_time);
+  }
 }

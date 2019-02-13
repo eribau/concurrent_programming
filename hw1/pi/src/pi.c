@@ -14,21 +14,20 @@
 #include <sys/time.h>
 #include <math.h>
 #include "taskQueue.h"
-#define DEF_EPSILON 0.1
-#define MAXWORKERS 10
+#define DEF_EPSILON 0.00001
+#define MAXWORKERS 4
 #define DEF_HEURISTIC 2
 
 pthread_mutex_t lock; /* mutex lock for the bag of tasks */
-pthread_mutex_t area;
-pthread_mutex_t finished;
-pthread_mutex_t ntasks;
+pthread_mutex_t area; /* mutex lock for the sum of areas */
+pthread_mutex_t ntasks; /* mutex lock for the number of tasks */
+
 int numWorkers;
 double epsilon;
 int numTasks;   /* number of generated tasks */
-int finishedTasks;
 int heuristic;  /* multiplier used to calculate maxTasks */
-int maxTasks;
-double sum;  /* The sum of the areas */
+int maxTasks; /* the maximum number of tasks */
+double sum;  /* the sum of the areas */
 
 
 /* timer */
@@ -49,13 +48,12 @@ double start_time, end_time; /* start and end times */
 
 void *Worker(void *);
 
-/* Function that recursively calculates pi */
+/* Function that recursively calculates an approximation of pi(/4) */
 double pi(double a,double b,double fa,double fb,double area) {
   double m = (a + b)/2;
   double fm = sqrt(1 - m*m);
   double larea = (fa + fm)*(m - a)/2;
   double rarea = (fb + fm)*(b - m)/2;
-  //printf("Area: %f Epsilon: %f\n", fabs((larea + rarea) - area), epsilon);
   if (fabs((larea + rarea) - area) > epsilon) {
     larea = pi(a, m, fa, fm, larea);
     rarea = pi(m, b, fm, fb, rarea);
@@ -78,18 +76,18 @@ int main(int argc, char *argv[]) {
 
   /* read command line arguments, if any */
   numWorkers = (argc > 1) ? atoi(argv[1]) : MAXWORKERS;
-  epsilon = (argc > 2) ? atof(argv[2]) : DEF_EPSILON;
-  heuristic = (argc > 3) ? atoi(argv[3]) : DEF_HEURISTIC;
+  heuristic = (argc > 2) ? atoi(argv[2]) : DEF_HEURISTIC;
+  epsilon = (argc > 3) ? atof(argv[3]) : DEF_EPSILON;
   if (numWorkers > MAXWORKERS) numWorkers = MAXWORKERS;
 
   /* initialize the bag of tasks and variables */
-  init();
+  init(); // bag of tasks
   numTasks = 0;
   maxTasks = numWorkers * heuristic;
-  finishedTasks = 0;
   sum = 0;
 
-  /* Start the timer and do the work */
+  /*  Start the timer, put an initial task in the bag of tasks
+      and do the work */
   start_time = read_timer();
   struct Task first = { 0.0, 1.0, 1.0, 0.0, 0.5};
   put(first);
@@ -108,8 +106,8 @@ int main(int argc, char *argv[]) {
   pthread_exit(NULL);
 }
 
-/* Each worker sums the values in one strip of the matrix.
-   After a barrier, worker(0) computes and prints the total */
+/*  Each worker first adds tasks to the bag of tasks until a limit is reached,
+    then switches over to work through the generated tasks */
 void *Worker(void *arg) {
   double m, fm, larea, rarea;
   struct Task task;
@@ -143,20 +141,17 @@ void *Worker(void *arg) {
               pthread_mutex_lock(&area);
               sum = sum + larea + rarea;
               pthread_mutex_unlock(&area);
-              pthread_mutex_lock(&finished);
-              finishedTasks++;
-              pthread_mutex_unlock(&finished);
             }
           } else {  // if the bag of tasks is empty
-            pthread_mutex_unlock(&lock);
+            pthread_mutex_unlock(&lock); // nothing to do but to release the lock
           }
         }
-      } else {  // if numtasks >= maxTasks
+      } else {  // if numTasks >= maxTasks
           pthread_mutex_unlock(&ntasks);
           break;  // exit while-loop, since we have enough tasks
       }
-    } else {
-      break;
+    } else {  // if numTasks >= maxTasks
+      break; // exit while-loop, since we have enough tasks
     }
   }
   while(true) {
@@ -170,15 +165,12 @@ void *Worker(void *arg) {
         pthread_mutex_lock(&area);
         sum += appr;
         pthread_mutex_unlock(&area);
-        pthread_mutex_lock(&finished);
-        finishedTasks++;
-        pthread_mutex_unlock(&finished);
       } else {  // the bag of tasks is empty
         pthread_mutex_unlock(&lock);
         break;  // nothing left to do
       }
-    } else {
-      break;
+    } else { // the bag of tasks is empty
+      break; // nothing left to do
     }
   }
 }

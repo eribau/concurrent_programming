@@ -1,0 +1,4 @@
+make
+./matrixSumA
+./matrixSumB
+./matrixSumC
