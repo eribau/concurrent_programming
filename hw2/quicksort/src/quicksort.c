@@ -9,9 +9,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <assert.h>
 
-#define MAXSIZE 100  /* maximum matrix size */
-#define MAXWORKERS 8   /* maximum number of workers */
+#define MAXSIZE 1000000  /* maximum matrix size */
+#define MAXWORKERS 32   /* maximum number of workers */
 #define TRUE 1
 #define FALSE 0
 
@@ -58,11 +59,19 @@ int partition(int lo, int hi) {
 void quicksort(int lo, int hi) {
   if (lo < hi) {
     int p = partition(lo, hi);
-      #pragma omp task
       quicksort(lo, p);
       #pragma omp task
       quicksort(p + 1, hi);
   }
+}
+
+
+/* test to see if array is sorted or not (descending order; left to right)*/
+int isSorted(int *arr, int n) {
+  for (int i = 1; i < n; i++) {
+    if (arr[i] < arr[i-1]) return 0;
+  }
+  return 1;
 }
 
 int main(int argc, char *argv[]) {
@@ -76,10 +85,9 @@ int main(int argc, char *argv[]) {
 
   omp_set_num_threads(numWorkers);
 
-  /* initialize the matrix */
+  /* initialize the array */
 	  for (i = 0; i < size; i++) {
       array[i] = rand()%99;
-      //array[i] = 1;
   }
 
   //printArray();
@@ -91,6 +99,8 @@ int main(int argc, char *argv[]) {
   }
   end_time = omp_get_wtime();
   //printArray();
+
+  assert(isSorted(array, size));
 
   printf("it took %g seconds\n", end_time - start_time);
 }

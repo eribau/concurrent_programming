@@ -14,25 +14,30 @@ double start_time, end_time;
 int numWorkers;
 int size;
 int array[MAXSIZE];
+int sums[MAXSIZE];
 int tCount; /* shared counter */
 int done; /* flag to set when done */
 
 void *Worker(void *);
 
-void printArray() {
+void printArray(int* arr) {
   printf("[ ");
   for (int i = 0; i < size; i++) {
-    printf("%d ", array[i]);
+    printf("%d ", arr[i]);
   }
   printf("]\n");
 }
 
 //TODO
 void prefixScan(int output[], int input[]) {
-  for (i = 0; i < log2(size); i++) {
-    #pragma omp for
-    for (j = 1; j < size; j++) {
-      if (j < 1<<i) {}
+  int i, j;
+  for(j = 0; j < log2(size); j++) {
+    #pragma omp parallel private(i)
+    {
+      #pragma omp for
+      for (i = 1<<j; i < size; i++) {
+        output[i] = input[i] + input[i - 1<<j];
+      }
     }
   }
 }
@@ -92,7 +97,7 @@ void quicksort() {
       }
       At[ll++] = pivot;
       for (int i = 0; i < gl; ++i) {
-        At[ll + i] = Gl[i];
+        At[ll + i] = Gd[i];
       }
       #pragma omp atomic
       ++tCount;
@@ -122,7 +127,7 @@ int main(int argc, char *argv[]) {
 
   omp_set_num_threads(numWorkers);
 
-  /* initialize the matrix */
+  /* initialize the array */
 	  for (i = 0; i < size; i++) {
       array[i] = rand()%99;
   }
@@ -131,8 +136,15 @@ int main(int argc, char *argv[]) {
   done = 0;
   init();
 
-  printArray();
-  quicksort();
-  printArray();
+  //printArray();
+  //quicksort();
+  //printArray();
 
+  /* initialize the array */
+	  for (i = 0; i < size; i++) {
+      sums[i] = 0;
+  }
+
+  prefixScan(sums, array);
+  printArray(sums);
 }
