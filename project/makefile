@@ -10,13 +10,13 @@ LIBS=-lm
 _DEPS=
 DEPS=$(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ=hungrybirds.o
+_OBJ=nSqr_seq.o driver.o
 OBJ=$(patsubst %,$(ODIR)/%,$(_OBJ))
 
 $(ODIR)/%.o: $(SDIR)/%.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-hungrybirds: $(OBJ)
+driver: $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
 
 .PHONY: clean

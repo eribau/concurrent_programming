@@ -1,0 +1,6 @@
+n                                 # number of bodies
+radius                            # radius of the universe
+x_pos, y_pos, x_vel, y_vel, mass  # x and y coordinates of the position, coordinates for the velocity and mass
+.
+.
+.
