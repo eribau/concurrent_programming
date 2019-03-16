@@ -1,9 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include <stdbool.h>
-#include <time.h>
-#include <sys/time.h>
+#include "aux.h"
 #define G 1 // 6.67e-11
 #define MAXBODIES 250
 
@@ -12,27 +10,13 @@ struct Point {
   double y;
 };
 
-/* timer copied from matrixSum.c */
-double read_timer() {
-    static bool initialized = false;
-    static struct timeval start;
-    struct timeval end;
-    if( !initialized )
-    {
-        gettimeofday( &start, NULL );
-        initialized = true;
-    }
-    gettimeofday( &end, NULL );
-    return (end.tv_sec - start.tv_sec) + 1.0e-6 * (end.tv_usec - start.tv_usec);
-}
-
 int n;                                                  // number of bodies
 struct Point p[MAXBODIES], v[MAXBODIES], f[MAXBODIES];  // position, velocity and force of each body
 double m[MAXBODIES];                                    // mass for each body
 double dt;                                              // delta t, timesteps
 double start_time, end_time;                            // start and end time
 
-void calculateForces() {
+void calculateForces_seq() {
   double distance, magnitue;
   struct Point direction;
 
@@ -50,7 +34,7 @@ void calculateForces() {
   }
 }
 
-void moveBodies() {
+void moveBodies_seq() {
   struct Point deltav;
   struct Point deltap;
   for (int i = 0; i < n; i++) {
@@ -66,7 +50,7 @@ void moveBodies() {
   }
 }
 
-void init() {
+void init_seq() {
   double x, y;
 
   for (int i = 0; i < n; i++) {
@@ -76,13 +60,13 @@ void init() {
     p[i].y = y;
     v[i].x = (-2*M_PI/n * y);
     v[i].y = (2*M_PI/n * x);
-    f[i].x = -4*M_PI*M_PI/(n*n) * x;
-    f[i].x = -4*M_PI*M_PI/(n*n) * y;
+    //f[i].x = -4*M_PI*M_PI/(n*n) * x;
+    //f[i].x = -4*M_PI*M_PI/(n*n) * y;
     m[i] = 1;
   }
 }
 
-void printBodies() {
+void printBodies_seq() {
   printf("planet nr\t position\t velocity\t mass\n");
   for (int i = 0; i < n; i++) {
     printf("%d\t", i);
@@ -103,19 +87,19 @@ double run_nSqr_seq(int gnumBodies, int numSteps) {
     exit(1);
   }
 
-  init();
+  init_seq();
 
   printf("#number of bodies: %d\n", n);
-  printf("#number of timesteps: %f\n", dt);
+  printf("#number of timesteps: %d\n", numSteps);
   //printBodies();
 
   start_time = read_timer();
   for (double t = 0.0; t < numSteps; t+=dt) {
-    calculateForces();
-    moveBodies();
+    calculateForces_seq();
+    moveBodies_seq();
   }
   end_time = read_timer();
-  //printBodies();
+  printBodies_seq();
 
   return end_time - start_time;
 }
