@@ -4,6 +4,7 @@ CFLAGS=-fopenmp -I$(IDIR)
 
 ODIR=obj
 SDIR=src
+TDIR=tests
 
 LIBS=-lm
 
@@ -13,10 +14,15 @@ DEPS=$(patsubst %,$(IDIR)/%,$(_DEPS))
 _OBJ=aux.o nSqr_seq.o nSqr_par.o driver.o
 OBJ=$(patsubst %,$(ODIR)/%,$(_OBJ))
 
+all: test
+
 $(ODIR)/%.o: $(SDIR)/%.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 driver: $(OBJ)
+	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
+
+test: $(ODIR)/test.o $(ODIR)/quadtree.o
 	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
 
 .PHONY: clean
