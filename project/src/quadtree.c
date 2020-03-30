@@ -67,6 +67,24 @@ quadtree_node_free(quadtree_node_t *node) {
   free(node);
 }
 /*****************************************************************************/
+int
+node_is_empty(quadtree_node_t *node) {
+  return (node->body == NULL) &&
+          (node->nw == NULL) &&
+          (node->ne == NULL) &&
+          (node->sw == NULL) &&
+          (node->se == NULL);
+}
+/*****************************************************************************/
+int
+node_is_leaf(quadtree_node_t *node) {
+  return (node->body != NULL) &&
+          (node->nw == NULL) &&
+          (node->ne == NULL) &&
+          (node->sw == NULL) &&
+          (node->se == NULL);
+}
+/*****************************************************************************/
 quadtree_t*
 quadtree_new(double length, double threshold) {
   quadtree_t *tree;
@@ -171,8 +189,9 @@ insert_(quadtree_node_t *node, quadtree_body_t *body) {
   }
 
   // TODO What happens if the node contains a body at the same location?
+  // TODO Have to make more thorough check if body is empty
   // Is the node external and without body, i.e. empty?
-  if(node->body == NULL) {
+  if(node_is_empty(node)) {
     node->body = body;
     node->x = body->x;
     node->y = body->y;

@@ -96,6 +96,49 @@ test_insert_two_bodies() {
   quadtree_free(tree);
 }
 
+static void
+test_insert_three_bodies() {
+  quadtree_t *tree = quadtree_new(1.0, 0.5);
+  quadtree_body_t *body1 = quadtree_body_new(0.25, 0.25, 1.0);
+  quadtree_body_t *body2 = quadtree_body_new(0.75, 0.75, 1.0);
+  quadtree_body_t *body3 = quadtree_body_new(0.95, 0.95, 1.0);
+  insert_body(tree, body1);
+  insert_body(tree, body2);
+  insert_body(tree, body3);
+  // Root should be empty but have the total sum of masses and average position
+  assert(tree->root->body == NULL);
+  assert(tree->root->x == 0.65);
+  assert(tree->root->y == 0.65);
+  assert(tree->root->mass == 3.0);
+  // SW of root should contain body1
+  assert(tree->root->sw->body == body1);
+  assert(tree->root->sw->x == 0.25);
+  assert(tree->root->sw->y == 0.25);
+  assert(tree->root->sw->mass == 1.0);
+  // NE of root should be empty but have the total sum of masses for
+  // body2 and body3
+  assert(tree->root->ne->body == NULL);
+  assert(tree->root->ne->x == 0.85);
+  assert(tree->root->ne->y == 0.85);
+  assert(tree->root->ne->mass == 2.0);
+  // NW of NE of root should contain body2, since if a point is
+  // exactly on a gridline it will be put into the one closest
+  // to NW going clockwise
+  assert(tree->root->ne->nw->body == body2);
+  assert(tree->root->ne->nw->x == 0.75);
+  assert(tree->root->ne->nw->y == 0.75);
+  assert(tree->root->ne->nw->mass == 1.0);
+  // NE of NE of root shoudl contain body3
+  assert(tree->root->ne->ne->body == body3);
+  assert(tree->root->ne->ne->x == 0.95);
+  assert(tree->root->ne->ne->y == 0.95);
+  assert(tree->root->ne->ne->mass == 1.0);
+  // check to see if SE and NW of root are empty
+  assert(node_is_empty(tree->root->se));
+  assert(node_is_empty(tree->root->nw));
+  quadtree_free(tree);
+}
+
 int
 main(int argc, const char *argv[]) {
   test(quad);
@@ -104,4 +147,5 @@ main(int argc, const char *argv[]) {
   test(update_center_of_mass);
   test(insert_one_body);
   test(insert_two_bodies);
+  test(insert_three_bodies);
 }

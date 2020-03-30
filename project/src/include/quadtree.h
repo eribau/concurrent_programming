@@ -65,7 +65,7 @@ int
 node_is_empty(quadtree_node_t *node);
 
 int
-node_is_leaf(quadtree_node_t);
+node_is_leaf(quadtree_node_t *node);
 
 int
 insert_body(quadtree_t *tree, quadtree_body_t *body);
