@@ -1,18 +1,30 @@
 #include "quadtree.h"
+#include <stdio.h>
 
 /* Internal prototypes */
 int
 insert_(quadtree_node_t *node, quadtree_body_t *body);
 
+void
+update_force_(quadtree_node_t *node, quadtree_body_t *body, double g, double threshold);
+
 /*****************************************************************************/
 quadtree_body_t*
-quadtree_body_new(double x, double y, double mass) {
+quadtree_body_new(double p_x, double p_y,
+                  double v_x, double v_y,
+                  double f_x, double f_y,
+                  double mass)
+{
   quadtree_body_t *body;
   if(!(body = malloc(sizeof(*body)))) {
     return NULL;
   }
-  body->x = x;
-  body->y = y;
+  body->p_x = p_x;
+  body->p_y = p_y;
+  body->v_x = v_x;
+  body->v_y = v_y;
+  body->f_x = f_x;
+  body->f_y = f_y;
   body->mass = mass;
 
   return body;
@@ -63,7 +75,7 @@ quadtree_node_free(quadtree_node_t *node) {
   if(node->se != NULL) quadtree_node_free(node->se);
 
   quadtree_quad_free(node->quad);
-  quadtree_body_free(node->body);
+  // quadtree_body_free(node->body);
   free(node);
 }
 /*****************************************************************************/
@@ -110,14 +122,19 @@ quadtree_free(quadtree_t *tree) {
 /*****************************************************************************/
 double
 distance_between_bodies(quadtree_body_t *a, quadtree_body_t *b) {
-  return sqrt(pow(a->x - b->x, 2) + pow(a->y - b->y, 2));
+  return sqrt(pow(a->p_x - b->p_x, 2) + pow(a->p_y - b->p_y, 2));
+}
+/*****************************************************************************/
+double
+distance_between_points(double x1, double y1, double x2, double y2) {
+  return sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2));
 }
 /*****************************************************************************/
 void
 update_center_of_mass(quadtree_node_t *node, quadtree_body_t *body) {
   double mass = node->mass + body->mass;
-  node->x = (node->x * node->mass + body->x * body->mass) / mass;
-  node->y = (node->y * node->mass + body->y * body->mass) / mass;
+  node->p_x = (node->p_x * node->mass + body->p_x * body->mass) / mass;
+  node->p_y = (node->p_y * node->mass + body->p_y * body->mass) / mass;
   node->mass = mass;
 }
 /*****************************************************************************/
@@ -140,10 +157,10 @@ insert_body(quadtree_t *tree, quadtree_body_t *body) {
 int
 quad_contains(quadtree_quad_t *quad, quadtree_body_t *body) {
   return quad != NULL &&
-          body->x >= quad->x &&
-          body->x <= (quad->x + quad->length) &&
-          body->y >= quad->y &&
-          body->y <= (quad->y + quad->length);
+          body->p_x >= quad->x &&
+          body->p_x <= (quad->x + quad->length) &&
+          body->p_y >= quad->y &&
+          body->p_y <= (quad->y + quad->length);
 }
 /*****************************************************************************/
 quadtree_node_t *
@@ -189,12 +206,16 @@ insert_(quadtree_node_t *node, quadtree_body_t *body) {
   }
 
   // TODO What happens if the node contains a body at the same location?
-  // TODO Have to make more thorough check if body is empty
+
   // Is the node external and without body, i.e. empty?
   if(node_is_empty(node)) {
     node->body = body;
-    node->x = body->x;
-    node->y = body->y;
+    node->p_x = body->p_x;
+    node->p_y = body->p_y;
+    node->v_x = body->v_x;
+    node->v_y = body->v_y;
+    node->f_x = body->f_x;
+    node->f_y = body->f_y;
     node->mass = body->mass;
     return 1;
   }
@@ -219,3 +240,51 @@ insert_(quadtree_node_t *node, quadtree_body_t *body) {
   }
 }
 /*****************************************************************************/
+void
+update_force(quadtree_t *tree, quadtree_body_t *body, double g) {
+  return update_force_(tree->root, body, g, tree->threshold);
+}
+/*****************************************************************************/
+void
+update_force_(quadtree_node_t *node, quadtree_body_t *body,
+                double g, double threshold)
+{
+  double distance;
+  double magnitude;
+  double dir_x;
+  double dir_y;
+
+  if(node_is_empty(node)) {
+    return;
+  } else if(node_is_leaf(node)) {
+    // Check that the node isn't the same as body
+    if(node->body == body) {
+      return;
+    }
+    distance = distance_between_bodies(node->body, body);
+    magnitude = (g*node->mass*body->mass) / (distance*distance);
+    dir_x = node->p_x - body->p_x;
+    dir_y = node->p_y - body->p_y;
+    body->f_x = body->f_x + magnitude * dir_x / distance;
+    body->f_y = body->f_y + magnitude * dir_y / distance;
+    return;
+  } else {
+      distance = distance_between_points(node->p_x, node->p_y, body->p_x, body->p_y);
+      if(node->quad->length/distance < threshold) {
+        // sufficiently far away to make approximation
+        magnitude = (g*node->mass*body->mass) / distance*distance;
+        dir_x = node->p_x - body->p_x;
+        dir_y = node->p_y - body->p_y;
+        body->f_x = body->f_x + magnitude * dir_x / distance;
+        body->f_y = body->f_y + magnitude * dir_y / distance;
+        return;
+      } else {
+        // Too close, run recursively on each child node
+        update_force_(node->nw, body, g, threshold);
+        update_force_(node->ne, body, g, threshold);
+        update_force_(node->sw, body, g, threshold);
+        update_force_(node->se, body, g, threshold);
+        return;
+      }
+  }
+}

@@ -11,8 +11,12 @@ typedef struct quadtree_quad {
 } quadtree_quad_t;
 
 typedef struct quadtree_body {
-	double x;
-	double y;
+	double p_x;
+	double p_y;
+	double v_x;
+	double v_y;
+	double f_x;
+	double f_y;
 	double mass;
 } quadtree_body_t;
 
@@ -23,8 +27,12 @@ typedef struct quadtree_node {
 	struct quadtree_node *sw;
 	struct quadtree_quad *quad;
 	struct quadtree_body *body;
-	double x;
-	double y;
+	double p_x;
+	double p_y;
+	double v_x;
+	double v_y;
+	double f_x;
+	double f_y;
 	double mass;
 } quadtree_node_t;
 
@@ -34,7 +42,10 @@ typedef struct quadtree {
 } quadtree_t;
 
 quadtree_body_t*
-quadtree_body_new(double x, double y, double mass);
+quadtree_body_new(double p_x, double p_y,
+	 								double v_x, double v_y,
+									double f_x, double f_y,
+									double mass);
 
 void
 quadtree_body_free(quadtree_body_t *body);
@@ -57,7 +68,9 @@ quadtree_new(double length, double threshold);
 void
 quadtree_free(quadtree_t *tree);
 
-/* Returns true if the quadrant contains the body */
+/**
+ 	* Returns true if the quadrant contains the body
+	*/
 int
 node_contains_body(quadtree_quad_t *quad, quadtree_body_t *body);
 
@@ -84,5 +97,10 @@ update_center_of_mass(quadtree_node_t *node, quadtree_body_t *body);
 	*/
 int
 insert_body(quadtree_t *tree, quadtree_body_t *body);
+/**
+	* Updates the forces acting on a given body
+	*/
+void
+update_force(quadtree_t *tree, quadtree_body_t *body, double g);
 
 #endif
