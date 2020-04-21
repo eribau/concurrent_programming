@@ -270,7 +270,7 @@ update_force_(quadtree_node_t *node, quadtree_body_t *body,
     return;
   } else {
       distance = distance_between_points(node->p_x, node->p_y, body->p_x, body->p_y);
-      if(node->quad->length/distance < threshold) {
+      if(distance > threshold) {
         // sufficiently far away to make approximation
         magnitude = (g*node->mass*body->mass) / distance*distance;
         dir_x = node->p_x - body->p_x;
