@@ -14,7 +14,7 @@ DEPS=$(patsubst %,$(IDIR)/%,$(_DEPS))
 _OBJ=aux.o nSqr_seq.o nSqr_par.o driver.o
 OBJ=$(patsubst %,$(ODIR)/%,$(_OBJ))
 
-all: test
+all: test driver
 
 $(ODIR)/%.o: $(SDIR)/%.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)

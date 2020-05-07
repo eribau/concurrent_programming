@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "nSqr_seq.h"
 #include "nSqr_par.h"
+#include "aux.h"
 
 #define GNUMBODIES_DEFAULT 25
 #define NUMSTEPS_DEFAULT 10
@@ -9,9 +10,10 @@
 #define NUMWORKERS_DEFAULT 1
 
 // TODO
-// Fix inputs: gnumBodies, numSteps, far (distance used to decide when to approximate), numWorkers
+// DONE Fix inputs: gnumBodies, numSteps, far (distance used to decide when to approximate), numWorkers
 // Fix initialization of bodies, should be able to verify correctness
 // Implement Barnes-Hut program
+// Implement parallelized version of Barnes-Hut program
 // Implement saving of position data so that it can be plotted
 // Change driver to perform experiment and save results (?)
 
@@ -20,7 +22,7 @@ void main(int argc, char *argv) {
 
   int gnumBodies = GNUMBODIES_DEFAULT;
   int numSteps = NUMSTEPS_DEFAULT;
-  double far = DISTANCE_DEFAULT;
+  double far = FAR_DEFAULT;
   int numWorkers = NUMWORKERS_DEFAULT;
 
   if(argc > 5) {
@@ -44,6 +46,14 @@ void main(int argc, char *argv) {
   } else if(argc == 2){
     gnumBodies = argv[1];
   }
+
+  quadtree_body_t bodies[2];
+  init_bodies(2, 1.0, 1.0, 1.0, bodies);
+
+  FILE *fp = fopen("data/positions.csv", "a");
+  write_positions(fp, 2, bodies);
+  write_positions(fp, 2, bodies);
+  fclose(fp);
 
   time = run_nSqr_seq(3, 1);
   printf("time: %f\n", time);
