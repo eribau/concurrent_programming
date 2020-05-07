@@ -102,5 +102,11 @@ insert_body(quadtree_t *tree, quadtree_body_t *body);
 	*/
 void
 update_force(quadtree_t *tree, quadtree_body_t *body, double g);
+/**
+	* Tests if the far value (threshold) gives that 80% of bodies will used
+	* approximation
+	*/
+int
+test_far_value(quadtree_t *tree, int n);
 
 #endif

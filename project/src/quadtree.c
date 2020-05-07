@@ -8,6 +8,9 @@ insert_(quadtree_node_t *node, quadtree_body_t *body);
 void
 update_force_(quadtree_node_t *node, quadtree_body_t *body, double g, double threshold);
 
+int
+count_approximations(quadtree *node);
+
 /*****************************************************************************/
 quadtree_body_t*
 quadtree_body_new(double p_x, double p_y,
@@ -288,3 +291,35 @@ update_force_(quadtree_node_t *node, quadtree_body_t *body,
       }
   }
 }
+/*****************************************************************************/
+int
+test_far_value(quadtree_t *tree, int n) {
+  int number_of_approximations = count_approximations(tree->root);
+  double approximation_ratio = number_of_approximations / n;
+  if(approximation_ratio >= 0.8) {
+    return 1;
+  }
+  return 0;
+}
+/*****************************************************************************/
+int
+count_approximations(quadtree *node) {
+  if(node_is_empty(node)) {
+    return 0;
+  } else if(node_is_leaf(node)) {
+    return 0;
+  } else {
+      distance = distance_between_points(node->p_x, node->p_y, body->p_x, body->p_y);
+      if(distance > threshold) {
+        return 1;
+      } else {
+        // Too close, run recursively on each child node
+        int nw = count_approximations(node->nw);
+        int ne = count_approximations(node->ne);
+        int sw = count_approximations(node->sw);
+        int se = count_approximations(node->se);
+        return nw + ne + sw + se;
+      }
+  }
+}
+/*****************************************************************************/
