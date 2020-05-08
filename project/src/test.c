@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
 
+#include "aux.h"
 #include "quadtree.h"
 
 #define test(fn) \
@@ -200,6 +201,26 @@ test_update_force() {
   quadtree_body_free(body2);
 }
 
+static void
+test_test_far_value() {
+  int n = 120;
+  double length = 1.0;
+  double far = 0.25;
+
+  quadtree_body_t bodies[n];
+  init_bodies(n, length, 1.0, 1.0, bodies);
+  quadtree_t *tree = quadtree_new(length, far);
+  for(int i = 0; i < n; i++) {
+    insert_body(tree, &bodies[i]);
+  }
+  int result = test_far_value(tree, n, bodies);
+  assert(result == 1);
+  quadtree_free(tree);
+  // for(int i = 0; i < n; i++) {
+  //   quadtree_body_free(&bodies[i]);
+  // }
+}
+
 int
 main(int argc, const char *argv[]) {
   test(quad);
@@ -210,4 +231,5 @@ main(int argc, const char *argv[]) {
   test(insert_two_bodies);
   test(insert_three_bodies);
   test(update_force);
+  test(test_far_value);
 }

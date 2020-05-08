@@ -9,7 +9,7 @@ void
 update_force_(quadtree_node_t *node, quadtree_body_t *body, double g, double threshold);
 
 int
-count_approximations(quadtree *node);
+count_approximations(quadtree_node_t *node, quadtree_body_t body, double threshold);
 
 /*****************************************************************************/
 quadtree_body_t*
@@ -293,33 +293,44 @@ update_force_(quadtree_node_t *node, quadtree_body_t *body,
 }
 /*****************************************************************************/
 int
-test_far_value(quadtree_t *tree, int n) {
-  int number_of_approximations = count_approximations(tree->root);
-  double approximation_ratio = number_of_approximations / n;
-  if(approximation_ratio >= 0.8) {
+test_far_value(quadtree_t *tree, int n, quadtree_body_t *bodies) {
+  double approximation_ratio = 1;
+  int number_of_approximations = 0;
+  for(int i = 0; i < n; i++) {
+    number_of_approximations = count_approximations(tree->root, bodies[i], tree->threshold);
+    approximation_ratio += (double)(number_of_approximations) / (double)(n - 1);
+    // printf("Body %d Appr %d Ratio %f\n", i+1, number_of_approximations, (double)(n - number_of_approximations) / (double)(n - 1));
+  }
+  // printf("approximation_ratio %f\n", approximation_ratio/n);
+  if(approximation_ratio/n >= 0.8) {
     return 1;
   }
   return 0;
 }
 /*****************************************************************************/
+/**
+  * Counts the number of nodes that are so far away form the body that an
+  * approximation can be used
+  */
 int
-count_approximations(quadtree *node) {
+count_approximations(quadtree_node_t *node, quadtree_body_t body, double threshold) {
+  double distance;
+
   if(node_is_empty(node)) {
     return 0;
   } else if(node_is_leaf(node)) {
-    return 0;
+    distance = distance_between_points(node->p_x, node->p_y, body.p_x, body.p_y);
+    if(distance > threshold) {
+      return 1;
+    } else {
+      return 0;
+    }
   } else {
-      distance = distance_between_points(node->p_x, node->p_y, body->p_x, body->p_y);
-      if(distance > threshold) {
-        return 1;
-      } else {
-        // Too close, run recursively on each child node
-        int nw = count_approximations(node->nw);
-        int ne = count_approximations(node->ne);
-        int sw = count_approximations(node->sw);
-        int se = count_approximations(node->se);
-        return nw + ne + sw + se;
-      }
+      int nw = count_approximations(node->nw, body, threshold);
+      int ne = count_approximations(node->ne, body, threshold);
+      int sw = count_approximations(node->sw, body, threshold);
+      int se = count_approximations(node->se, body, threshold);
+      return nw + ne + sw + se;
   }
 }
 /*****************************************************************************/

@@ -41,17 +41,23 @@ void init_bodies(int n, double length, double minMass, double maxMass, quadtree_
     }
 }
 
-// FILE *init_data_file(char *filename) {
-//   time_t rawtime;
-//   struct tm *timeinfo;
+// void moveBodies_seq() {
+//   double deltav_x, deltav_y;
+//   double deltap_x, deltap_y;
 //
-//   time(&rawtime);
-//   timeinfo = localtime(&rawtime);
-//   char *filepath = strcat(filename, asctime(timeinfo));
-//   strcat(filepath, ".csv");
+//   for (int i = 0; i < n; i++) {
+//     deltav_x = bodies[i]->f_x/bodies[i]->mass * dt;
+//     deltav_y = bodies[i]->f_y/bodies[i]->mass * dt;
+//     deltap_x = (bodies[i]->v_x + deltav_x/2) * dt;
+//     deltap_y = (bodies[i]->v_y + deltav_y/2) * dt;
 //
-//   FILE *file = fopen(filepath, "a");
-//   return file;
+//     bodies[i]->v_x = bodies[i]->v_x + deltav_x;
+//     bodies[i]->v_y = bodies[i]->v_y + deltav_y;
+//     bodies[i]->p_x = bodies[i]->p_x + deltap_x;
+//     bodies[i]->p_y = bodies[i]->p_y + deltap_y;
+//     bodies[i]->f_x = 0.0;
+//     bodies[i]->f_x = 0.0;
+//   }
 // }
 
 void write_positions(FILE *fp, int n, quadtree_body_t *bodies) {

@@ -107,6 +107,6 @@ update_force(quadtree_t *tree, quadtree_body_t *body, double g);
 	* approximation
 	*/
 int
-test_far_value(quadtree_t *tree, int n);
+test_far_value(quadtree_t *tree, int n, quadtree_body_t *bodies);
 
 #endif
