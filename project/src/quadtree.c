@@ -292,6 +292,24 @@ update_force_(quadtree_node_t *node, quadtree_body_t *body,
   }
 }
 /*****************************************************************************/
+void
+move_bodies(quadtree_body_t *bodies, int n, double dt) {
+  double deltav_x, deltav_y;
+  double deltap_x, deltap_y;
+  for (int i = 0; i < n; i++) {
+    deltav_x = bodies[i].f_x/bodies[i].mass * dt;
+    deltav_y = bodies[i].f_y/bodies[i].mass * dt;
+    deltap_x = (bodies[i].v_x + deltav_x/2) * dt;
+    deltap_y = (bodies[i].v_y + deltav_y/2) * dt;
+    bodies[i].v_x = bodies[i].v_x + deltav_x;
+    bodies[i].v_y = bodies[i].v_y + deltav_y;
+    bodies[i].p_x = bodies[i].p_x + deltap_x;
+    bodies[i].p_y = bodies[i].p_y + deltap_y;
+    bodies[i].f_x = 0.0;
+    bodies[i].f_y = 0.0;
+  }
+}
+/*****************************************************************************/
 int
 test_far_value(quadtree_t *tree, int n, quadtree_body_t *bodies) {
   double approximation_ratio = 1;

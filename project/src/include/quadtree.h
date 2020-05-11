@@ -109,4 +109,7 @@ update_force(quadtree_t *tree, quadtree_body_t *body, double g);
 int
 test_far_value(quadtree_t *tree, int n, quadtree_body_t *bodies);
 
+void
+move_bodies(quadtree_body_t *bodies, int n, double dt);
+
 #endif

@@ -50,19 +50,15 @@ void moveBodies_seq() {
   }
 }
 
-void init_seq() {
-  double x, y;
-
+void init_seq(double length, double minMass, double maxMass) {
   for (int i = 0; i < n; i++) {
-    x = cos(2*M_PI*i / n);
-    y = sin(2*M_PI*i / n);
-    p[i].x = x;
-    p[i].y = y;
-    v[i].x = (-2*M_PI/n * y);
-    v[i].y = (2*M_PI/n * x);
-    //f[i].x = -4*M_PI*M_PI/(n*n) * x;
-    //f[i].x = -4*M_PI*M_PI/(n*n) * y;
-    m[i] = 1;
+    p[i].x = fRand(0, length);
+    p[i].y = fRand(0, length);
+    v[i].x = 0;
+    v[i].y = 0;
+    f[i].x = 0;
+    f[i].x = 0;
+    m[i] = fRand(minMass, maxMass);
   }
 }
 
@@ -87,7 +83,7 @@ double run_nSqr_seq(int gnumBodies, int numSteps) {
     exit(1);
   }
 
-  init_seq();
+  // init_seq();
 
   printf("#number of bodies: %d\n", n);
   printf("#number of timesteps: %d\n", numSteps);

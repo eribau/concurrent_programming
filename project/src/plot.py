@@ -25,7 +25,7 @@ def animate(i):
     bodies.set_offsets(np.c_[x[i], y[i]])
     return bodies,
 
-ani = animation.FuncAnimation(fig, animate, frames=2,
-                                interval=10, blit=True, init_func=init)
+ani = animation.FuncAnimation(fig, animate, frames=100,
+                                interval=len(x), blit=True, init_func=init)
 
 plt.show()

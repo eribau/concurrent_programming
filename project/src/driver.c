@@ -11,10 +11,10 @@
 
 // TODO
 // DONE Fix inputs: gnumBodies, numSteps, far (distance used to decide when to approximate), numWorkers
-// Fix initialization of bodies, should be able to verify correctness
+// DONE Fix initialization of bodies, should be able to verify correctness
 // Implement Barnes-Hut program
 // Implement parallelized version of Barnes-Hut program
-// Implement saving of position data so that it can be plotted
+// DONE Implement saving of position data so that it can be plotted
 // Change driver to perform experiment and save results (?)
 
 void main(int argc, char *argv) {
