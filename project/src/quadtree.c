@@ -1,5 +1,6 @@
-#include "quadtree.h"
 #include <stdio.h>
+#include <omp.h>
+#include "quadtree.h"
 
 /* Internal prototypes */
 int
@@ -264,7 +265,7 @@ update_force_(quadtree_node_t *node, quadtree_body_t *body,
     if(node->body == body) {
       return;
     }
-    distance = distance_between_bodies(node->body, body);
+    distance = distance_between_points(node->p_x, node->p_y, body->p_x, body->p_y);
     magnitude = (g*node->mass*body->mass) / (distance*distance);
     dir_x = node->p_x - body->p_x;
     dir_y = node->p_y - body->p_y;

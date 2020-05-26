@@ -42,7 +42,6 @@ void init_bodies(int n, double length, double minMass, double maxMass, quadtree_
 }
 
 void write_positions(FILE *fp, int n, quadtree_body_t *bodies) {
-  // TODO write positional data of bodies to a csv file
   /* position format: x,y where x and y can be 6 char + . + 6 char ex. 123456.002414 */
   int pos_str_len = 30;
   int line_str_len = n * pos_str_len + n;

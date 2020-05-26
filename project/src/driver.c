@@ -55,8 +55,8 @@ void main(int argc, char *argv) {
   write_positions(fp, 2, bodies);
   fclose(fp);
 
-  time = run_nSqr_seq(3, 1);
-  printf("time: %f\n", time);
-  time = run_nSqr_par(3, 1, 4);
-  printf("time: %f\n", time);
+  // time = run_nSqr_seq(3, 1);
+  // printf("time: %f\n", time);
+  // time = run_nSqr_par(3, 1, 4);
+  // printf("time: %f\n", time);
 }
