@@ -16,7 +16,7 @@
 #define NUMWORKERS_DEFAULT 1
 
 // #define LOG
-#define TESTOUTPUT
+// #define TESTOUTPUT
 
 struct Point {
   double x;
@@ -37,10 +37,10 @@ void calculateForces_seq(int n, double g) {
       magnitude = (g*m[i]*m[j]) / (distance*distance);
       direction = (struct Point) { .x = (p[j].x - p[i].x),
                     .y = (p[j].y - p[i].y)};
-      f[i].x = f[i].x + magnitude*direction.x/distance;
-      f[j].x = f[j].x - magnitude*direction.x/distance;
-      f[i].y = f[i].y + magnitude*direction.y/distance;
-      f[j].y = f[j].y - magnitude*direction.y/distance;
+      f[i].x += magnitude*direction.x;
+      f[j].x -= magnitude*direction.x;
+      f[i].y += magnitude*direction.y;
+      f[j].y -= magnitude*direction.y;
       // printf("g %f dist %f mi %f mj %f mag %.14f %.14f\n", g, distance, m[i], m[j], magnitude, g*m[i]*m[j]);
     }
   }

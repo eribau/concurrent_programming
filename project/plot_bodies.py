@@ -1,12 +1,15 @@
 import numpy as np
 import pandas as pd
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
 length = 1
+Writer = animation.writers['ffmpeg']
+writer = Writer(fps=120, metadata=dict(artist='Me'), bitrate=1800)
 
 def get_data():
-    data = pd.read_csv("../data/positions.csv", header=None)
+    data = pd.read_csv("data/positions.csv", header=None)
     x = np.array(data.loc[:, ::2])
     y = np.array(data.loc[:, 1::2])
     return (x, y)
@@ -28,4 +31,6 @@ def animate(i):
 ani = animation.FuncAnimation(fig, animate, frames=len(x),
                                 interval=10, blit=True, init_func=init)
 
-plt.show()
+# plt.show()
+
+ani.save('data/animation.mp4', writer=writer)

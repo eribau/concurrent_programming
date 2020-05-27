@@ -33,6 +33,12 @@ def main():
     barnesHut_seq = [float(i) for i in barnesHut_seq]
     barnesHut_par = [float(i) for i in barnesHut_par]
 
+    font = {'family' : 'normal',
+        'weight' : 'bold',
+        'size'   : 22}
+
+    plt.rc('font', **font)
+
     y_pos = np.arange(len(labels))
     y_240 = [nSqr_seq[2], nSqr_par[11], barnesHut_seq[2], barnesHut_par[11]]
 
@@ -58,14 +64,26 @@ def main():
     width = 0.2
     y3_pos = np.arange(3)
     fig3, ax3 = plt.subplots()
-    bar12 = ax3.bar(y3_pos, [barnesHut_seq[0], barnesHut_seq[1], barnesHut_seq[2]], width, color='forestgreen')
-    bar22 = ax3.bar(y3_pos+width, [barnesHut_par[3], barnesHut_par[7], barnesHut_par[11]], width, color='firebrick')
+    bar12 = ax3.bar(y3_pos, [barnesHut_seq[0], barnesHut_seq[1], barnesHut_seq[2]], width, color='green')
+    bar22 = ax3.bar(y3_pos+width, [barnesHut_par[3], barnesHut_par[7], barnesHut_par[11]], width, color='red')
     ax3.set_xticks(y3_pos+width/2)
     ax3.set_xticklabels(['120', '180', '240'])
     ax3.set_ylabel("Seconds")
     ax3.set_xlabel("Number of Bodies")
     ax3.set_title("")
     ax3.legend((bar12[0], bar22[0]), ('Barnes-Hut seq', 'Barnes-Hut par 4 workers'))
+
+    width = 0.2
+    y4_pos = np.arange(3)
+    fig4, ax4 = plt.subplots()
+    bar12 = ax4.bar(y4_pos, [barnesHut_seq[0], barnesHut_seq[1], barnesHut_seq[2]], width, color='green')
+    bar22 = ax4.bar(y4_pos+width, [barnesHut_par[0], barnesHut_par[4], barnesHut_par[8]], width, color='red')
+    ax4.set_xticks(y4_pos+width/2)
+    ax4.set_xticklabels(['120', '180', '240'])
+    ax4.set_ylabel("Seconds")
+    ax4.set_xlabel("Number of Bodies")
+    ax4.set_title("")
+    ax4.legend((bar12[0], bar22[0]), ('Barnes-Hut seq', 'Barnes-Hut par 1 workers'))
 
     plt.show()
 

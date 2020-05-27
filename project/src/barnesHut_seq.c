@@ -13,10 +13,10 @@
 
 #define GNUMBODIES_DEFAULT 20
 #define NUMSTEPS_DEFAULT 100
-#define FAR_DEFAULT 1
+#define FAR_DEFAULT 0.25
 
 // #define LOG
-#define TESTOUTPUT
+// #define TESTOUTPUT
 
 /**
   * The program takes as arguments: number of bodies, number of steps, far

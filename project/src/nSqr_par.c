@@ -20,7 +20,7 @@
 #define NUMWORKERS_DEFAULT 1
 
 // #define LOG
-#define TESTOUTPUT
+// #define TESTOUTPUT
 
 struct Point {
   double x;
@@ -47,10 +47,10 @@ void calculateForces_par(int n, double g) {
       magnitue = (g*m[i]*m[j]) / (distance*distance);
       direction = (struct Point) {  .x = (p[j].x - p[i].x),
                                     .y = (p[j].y - p[i].y)};
-      f[w][i].x = f[w][i].x + magnitue*direction.x/distance;
-      f[w][j].x = f[w][j].x - magnitue*direction.x/distance;
-      f[w][i].y = f[w][i].y + magnitue*direction.y/distance;
-      f[w][j].y = f[w][j].y - magnitue*direction.y/distance;
+      f[w][i].x += magnitue*direction.x;
+      f[w][j].x -= magnitue*direction.x;
+      f[w][i].y += magnitue*direction.y;
+      f[w][j].y -= magnitue*direction.y;
     }
   }
 }

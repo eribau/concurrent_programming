@@ -6,7 +6,7 @@ from pathlib import Path
 data_dir = Path("data/")
 
 numBodies = [120, 180, 240] # number of bodies
-numSteps = 113800 # number of steps
+numSteps = 208000 # 113800 # number of steps
 far = 0.25
 numWorkers = [1, 2, 3, 4]
 

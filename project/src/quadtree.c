@@ -48,6 +48,7 @@ quadtree_quad_new(double x, double y, double length) {
   quad->x = x;
   quad->y = y;
   quad->length = length;
+  return  quad;
 }
 /*****************************************************************************/
 void

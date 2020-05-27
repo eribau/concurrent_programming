@@ -14,11 +14,11 @@
 
 #define GNUMBODIES_DEFAULT 20
 #define NUMSTEPS_DEFAULT 100
-#define FAR_DEFAULT 1
+#define FAR_DEFAULT 0.25
 #define NUMWORKERS_DEFAULT 1
 
 // #define LOG
-#define TESTOUTPUT
+// #define TESTOUTPUT
 
 /**
   * The program takes as arguments: number of bodies, number of steps, far, number of workers
@@ -77,10 +77,10 @@ void main(int argc, char *argv[]) {
 #pragma omp parallel
 {
 #pragma omp for schedule(static)
-      for(int i = 0; i < n; i++) {
-        update_force(tree, &bodies[i], G);
-        // printf("Thread %d\n", omp_get_thread_num());
-      }
+    for(int i = 0; i < n; i++) {
+      update_force(tree, &bodies[i], G);
+      // printf("Thread %d\n", omp_get_thread_num());
+    }
 }
     move_bodies(bodies, n, dt);
 #ifdef LOG
